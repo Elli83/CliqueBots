@@ -1,5 +1,8 @@
+**This project is still in very early development, do not expect code to function as expected or to be complete!**
+
 ## Information
-This is the source code for The Skeleton Clique Discord server's custom bots. This code is very specific to the servers needs and will likely not be ideal for your own use, this code is purely for educational purposes.
+This is the source code for the re-write of The Skeleton Clique Discord server's custom bots. This code is very specific to the servers needs and will likely not be ideal for your own use, this code is purely for educational purposes.
+The aim of the re-write is to used what I have learned since writing the original to make the code tidier, easier to work with, and less prone to bugs.
 
 ### Setup
 1. Make sure you have a MongoDB database
