@@ -18,7 +18,7 @@ class Commands(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name="balance", aliases=["bal"])
+    @commands.command(name="balance", aliases=["bal", "money", "credits"])
     async def balance(self, ctx, user: discord.Member=None):
         if user:
             await ctx.send(ctx.author.mention, embed=discord.Embed(title="Balance",
@@ -29,8 +29,7 @@ class Commands(commands.Cog):
 
     @commands.command(name="givemoney")
     async def give_money(self, ctx, user: discord.Member, amt: int):
-        mongo.User(user).bal -= amt
-        await ctx.send("Okay!")
+        mongo.User(user).bal += amt
 
 
 
