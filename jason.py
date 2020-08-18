@@ -28,8 +28,9 @@ class Commands(commands.Cog):
                                                                    description=f"You currently have {mongo.User(ctx.author).bal}cr"))
 
     @commands.command(name="givemoney")
-    async def give_money(self, user: discord.Member, amt: int):
-
+    async def give_money(self, ctx, user: discord.Member, amt: int):
+        mongo.User(user).bal -= amt
+        await ctx.send("Okay!")
 
 
 

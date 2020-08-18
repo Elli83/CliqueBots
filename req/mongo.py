@@ -40,9 +40,9 @@ class User:
 
     @bal.setter
     def bal(self, bal: int):
-        if bal < 0: return False
+        if bal < 0:
+            raise errors.InsufficientBalance
         self.update("Balance", bal)
-        return True
 
     # CORE FUNCTIONS
     def get(self, field):
