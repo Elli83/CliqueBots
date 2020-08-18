@@ -1,10 +1,7 @@
 import discord
 from discord.ext import commands
 
-import json
-
-import core
-from req import mongo, errors
+from req import mongo, core
 
 
 class Bot(core.Core):

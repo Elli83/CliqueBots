@@ -16,7 +16,7 @@ class Core(commands.Bot):
     def __init__(self, name, cogs=None):
         print("Starting bot...")
         super().__init__(command_prefix="!")   # Initialises the commands.Bot class
-        self.token = json.load(open("config/tokens.json"))[name]   # Get the token from tokens.json
+        self.token = json.load(open("../config/tokens.json"))[name]   # Get the token from tokens.json
 
         # Load all cogs
         for c in cogs:
