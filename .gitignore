@@ -1,3 +1,4 @@
 .idea
+__pycache__
 /req/__pycache__
 /config
