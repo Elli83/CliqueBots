@@ -1,0 +1,7 @@
+{
+  "mongo": {
+    "uri": "MONGO URI",
+    "db": "MONGO DB"
+  },
+  "prefix": "!"
+}
