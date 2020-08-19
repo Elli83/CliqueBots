@@ -21,6 +21,10 @@ class User:
             "Roles": [],
             "Backgrounds": []
         },
+        "Daily": {
+            "Last": 0,
+            "Streak": 0
+        },
         "Joined": time.time(),
         "Seen": time.time()
     }
@@ -34,6 +38,8 @@ class User:
         if not self._exists(self.id):
             self._create(self.id)
 
+        self.daily = self._Daily(self)
+
     # BALANCE
     @property
     def bal(self): return self.get("Balance")
@@ -43,6 +49,37 @@ class User:
         if bal < 0:
             raise errors.InsufficientBalance
         self.update("Balance", bal)
+
+    class _Daily:
+        def __init__(self, user):
+            self.user = user
+
+        @property
+        def claimed(self):
+            return self.user.get("Daily")['Last'] or 0
+
+        @property
+        def ready(self):
+            return self.claimed < time.time() - 86400
+
+        @property
+        def since(self):
+            return time.time() - self.claimed
+
+        @property
+        def until(self):
+            return 86400 - (time.time() - self.claimed)
+
+        def claim(self):
+            self.user.update("Daily.Last", time.time())
+
+        @property
+        def streak(self):
+            return self.user.get("Daily")['Streak'] or 0
+
+        @streak.setter
+        def streak(self, streak):
+            self.user.update("Daily.Streak", streak)
 
     # CORE FUNCTIONS
     def get(self, field):
