@@ -65,6 +65,17 @@ class Commands(commands.Cog):
             await ctx.send(ctx.author.mention, embed=embeds.error(f"Your daily credits are not ready yet\n"
                                                                   f"Try again in **{text}**"))
 
+    @commands.command()
+    async def donate(self, ctx, user: discord.Member, amt: int):
+        if amt < 1 or user == ctx.author:
+            raise commands.UserInputError
+
+        if await embeds.ConfirmTransaction().prompt(ctx):
+            await ctx.message.add_reaction('👍')
+            mongo.User(ctx.author).bal -= amt
+            mongo.User(user).bal += amt
+
+
     @commands.command(name="givemoney")
     async def give_money(self, ctx, user: discord.Member, amt: int):
         mongo.User(user).bal += amt
