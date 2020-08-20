@@ -13,6 +13,7 @@ def success(body, title="SUCCESS"):
     embed = discord.Embed(title=title,
                           description=body,
                           color=0x33ff33)
+    return embed
 
 
 class ConfirmTransaction(menus.Menu):
