@@ -1,0 +1,14 @@
+[
+  {
+    "Name": "Sample feed 1",
+    "Description": "This is a sample feed! Subscribe to get a role for announcements etc.",
+    "RoleID": 123
+  },
+
+  {
+    "Name": "Sample feed 2",
+    "Description": "This is another sample feed! You must be level 5 to subscribe!",
+    "RoleID": 456,
+    "Level": 5
+  }
+]

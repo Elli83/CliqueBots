@@ -4,6 +4,7 @@ from discord.ext import commands, menus
 import random
 import pymongo
 import math
+import json
 
 from req import mongo, core, embeds
 
@@ -107,6 +108,58 @@ class Commands(commands.Cog):
         pages.remove_button('\N{BLACK LEFT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}\ufe0f')
         pages.remove_button('\N{BLACK RIGHT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}\ufe0f')
         await pages.start(ctx)
+
+    @commands.command(name="sub", aliases=["subscribe", "feed", "feeds"])
+    async def sub(self, ctx):
+        feeds = json.load(open("config/feeds.json"))
+
+        class FeedsMenu(menus.Menu):
+            def __init__(self):
+                super().__init__()
+
+                self.embed = discord.Embed(title="Feeds")
+                for i, f in enumerate(feeds):
+                    self.embed.add_field(name=f"{i + 1}. {f['Name']}", value=f['Description'])
+                    button = menus.Button(f'{i+1}\N{COMBINING ENCLOSING KEYCAP}', self.button)
+
+                    self.add_button(button)
+
+            async def send_initial_message(self, ctx, channel):
+                return await ctx.send(ctx.author.mention, embed=self.embed)
+
+            async def button(self, payload):
+                res = int(payload.emoji.name[0])
+                feed = feeds[res-1]
+                role = ctx.guild.get_role(feed['RoleID'])
+
+                if role in ctx.author.roles:
+                    await self.message.clear_reactions()
+
+                    await self.message.edit(embed=embeds.error(f"You are already subscribed to `{feed['Name']}`\n"
+                                                               f"Would you like to unsubscribe?"))
+
+                    class UnsubConfirm(menus.Menu):
+                        def __init__(self, message):
+                            super().__init__()
+                            self.message = message
+
+                        @menus.button('\N{THUMBS UP SIGN}')
+                        async def yes(self, payload):
+                            await self.message.clear_reactions()
+                            await ctx.author.remove_roles(role)
+                            await self.message.edit(embed=embeds.success(f"You have unsubscribed from `{feed['Name']}`"))
+
+                        @menus.button('\N{THUMBS DOWN SIGN}')
+                        async def no(self, payload):
+                            await self.message.delete()
+
+                    await UnsubConfirm(self.message).start(ctx)
+                else:
+                    await ctx.author.add_roles(role)
+                    await self.message.clear_reactions()
+                    await self.message.edit(embed=embeds.success(f"You have subscribed to `{feed['Name']}`"))
+
+        await FeedsMenu().start(ctx)
 
     @commands.command(name="givemoney")
     async def give_money(self, ctx, user: discord.Member, amt: int):
