@@ -107,3 +107,45 @@ class User:
     def _create(cls, id):
         db['Users'].insert_one({"ID": str(id), **cls.defaults})
 
+
+class Tag:
+    def __init__(self, name):
+        self.name = name
+        self.body = self.get('Body')
+        self.author = self.get('Author')
+        self.created = self.get('Created')
+
+    def change(self, new):
+        self._update(self.name, "Body", new)
+
+    def remove(self):
+        self._remove(self.name)
+
+    def get(self, field):
+        return self._get(self.name).get(field)
+
+    # --------------------------------------------------
+    # CLASS METHODS
+    @classmethod
+    def exists(cls, name):
+        return len(list(db['Tags'].find({"Name": name}))) > 0
+
+    @classmethod
+    def _get(cls, name):
+        return db['Tags'].find_one({"Name": name})
+
+    @classmethod
+    def get_all(cls):
+        return db['Tags'].find({})
+
+    @classmethod
+    def _update(cls, name, field, value):
+        db['Tags'].update_one({"Name": name}, {"$set": {field: value}})
+
+    @classmethod
+    def _create(cls, name, body, author):
+        db['Tags'].insert_one({"Name": name, "Body": body, "Author": author, "Created": time.time()})
+
+    @classmethod
+    def _remove(cls, name):
+        db['Tags'].delete_one({"Name": name})
