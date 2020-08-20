@@ -39,6 +39,10 @@ class Commands(commands.Cog):
         if user.daily.ready:
             # Calculate how much the user should get
             amt = 100
+            if ctx.author in ctx.guild.premium_subscribers:
+                amt += 50
+            if mongo.User(ctx.author).isBirthday():
+                amt *= 2
 
             user.bal += amt   # Add the amount to the user balance
             user.daily.claim()   # Update the users last claimed time
@@ -73,7 +77,7 @@ class Commands(commands.Cog):
         if amt < 1 or user == ctx.author:
             raise commands.UserInputError
 
-        if await embeds.ConfirmTransaction().prompt(ctx):
+        if await embeds.confirm_transaction(ctx):
             await ctx.message.add_reaction('👍')
             mongo.User(ctx.author).bal -= amt
             mongo.User(user).bal += amt
@@ -96,19 +100,22 @@ class Commands(commands.Cog):
                 embed = discord.Embed(title=f"Leaderboard - Credits",
                                       color=0x33ff33)
                 embed.description = '\n'.join(f"` {'{:02d}'.format(i+1)} ` **|** <@{v['ID']}> - {v['Balance']}cr" for i, v in enumerate(entries, start=offset))
+
+                try:
+                    pos = [u['ID'] for u in top].index(str(ctx.author.id)) + 1
+                except:
+                    pos = "N/A"
+
                 embed.set_footer(text=f"Page {menu.current_page+1} | Your position: {pos}")
                 return embed
 
         top = list(mongo.db['Users'].find({"Balance": {"$gte": 1}}).sort("Balance", -1))
-        try:
-            pos = [u['ID'] for u in top].index(str(ctx.author.id)) + 1
-        except:
-            pos = "N/A"
         pages = menus.MenuPages(source=Leaderboard(top))
         pages.remove_button('\N{BLACK LEFT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}\ufe0f')
         pages.remove_button('\N{BLACK RIGHT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}\ufe0f')
         await pages.start(ctx)
 
+    """ THIS COMMAND IS NO LONGER USED
     @commands.command(name="sub", aliases=["subscribe", "feed", "feeds"])
     async def sub(self, ctx):
         feeds = json.load(open("config/feeds.json"))
@@ -159,7 +166,7 @@ class Commands(commands.Cog):
                     await self.message.clear_reactions()
                     await self.message.edit(embed=embeds.success(f"You have subscribed to `{feed['Name']}`"))
 
-        await FeedsMenu().start(ctx)
+        await FeedsMenu().start(ctx)"""
 
     @commands.command(name="givemoney")
     async def give_money(self, ctx, user: discord.Member, amt: int):

@@ -16,16 +16,16 @@ def success(body, title="SUCCESS"):
     return embed
 
 
-class ConfirmTransaction(menus.Menu):
-    def __init__(self, message=None):
+class Confirm(menus.Menu):
+    def __init__(self, embed, yesembed=None, noembed=None):
         super().__init__(timeout=30)
+        self.embed = embed
+        self.yesembed = yesembed
+        self.noembed = noembed
         self.confirm = False
 
     async def send_initial_message(self, ctx, channel):
-        embed=discord.Embed(title="Confirm Transaction",
-                            description="React with 👍 to confirm the transaction\n"
-                                        "React with 👎 to cancel the transaction")
-        return await ctx.send(ctx.author.mention, embed=embed)
+        return await ctx.send(ctx.author.mention, embed=self.embed)
 
     @menus.button('\N{THUMBS UP SIGN}')
     async def on_confirm(self, payload):
@@ -43,11 +43,35 @@ class ConfirmTransaction(menus.Menu):
         await self.message.clear_reactions()
 
         if self.confirm:
-            await self.message.delete()
+            if self.yesembed:
+                await self.message.edit(embed=self.yesembed)
+            else:
+                await self.message.delete()
         else:
-            embed = discord.Embed(title="Transaction Cancelled",
-                                  description="You have cancelled the transaction",
-                                  color=0xff0000)
-            await self.message.edit(content=ctx.author.mention, embed=embed, delete_after=10)
+            if self.noembed:
+                await self.message.edit(embed=self.noembed)
+            else:
+                await self.message.delete()
 
         return self.confirm
+
+
+async def confirm(ctx, embed=None, yesembed=None, noembed=None):
+    if embed is None:
+        embed = discord.Embed(title="Confirmation",
+                              description="Are you sure?")
+
+    return await Confirm(embed, yesembed, noembed).prompt(ctx)
+
+
+async def confirm_transaction(ctx):
+    embed = discord.Embed(title="Confirm Transaction",
+                          description="React with 👍 to confirm the transaction\n"
+                                      "React with 👎 to cancel the transaction")
+
+    noembed = discord.Embed(title="Transaction Cancelled",
+                            description="You have cancelled the transaction",
+                            color=0xff3333)
+
+    return await confirm(ctx, embed, noembed=noembed)
+
