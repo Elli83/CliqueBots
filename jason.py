@@ -115,7 +115,6 @@ class Commands(commands.Cog):
         pages.remove_button('\N{BLACK RIGHT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}\ufe0f')
         await pages.start(ctx)
 
-    """ THIS COMMAND IS NO LONGER USED
     @commands.command(name="sub", aliases=["subscribe", "feed", "feeds"])
     async def sub(self, ctx):
         feeds = json.load(open("config/feeds.json"))
@@ -166,7 +165,7 @@ class Commands(commands.Cog):
                     await self.message.clear_reactions()
                     await self.message.edit(embed=embeds.success(f"You have subscribed to `{feed['Name']}`"))
 
-        await FeedsMenu().start(ctx)"""
+        await FeedsMenu().start(ctx)
 
     @commands.command(name="givemoney")
     async def give_money(self, ctx, user: discord.Member, amt: int):
