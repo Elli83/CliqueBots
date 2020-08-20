@@ -1,7 +1,12 @@
 {
+  "prefix": "!",
   "mongo": {
     "uri": "MONGO URI",
     "db": "MONGO DB"
   },
-  "prefix": "!"
+  "roles": {
+    "admin": 123,
+    "moderator": 123,
+    "staff": 123
+  }
 }
