@@ -112,7 +112,7 @@ class Commands(commands.Cog):
 
                 if await embeds.confirm(ctx, embed=embed):
                     if tag.author == ctx.author.id:
-                        mongo.User(ctx.author).bal -= 50
+                        mongo.User(ctx.author).bal -= 25
                     tag.change(new)
                     await ctx.send(ctx.author.mention, embed=embeds.success(f"You have edited the tag `{name}`\n"
                                                                             f"You can use it with `!tag {name}`"))
