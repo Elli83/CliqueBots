@@ -143,9 +143,7 @@ class Commands(commands.Cog):
             tag = mongo.Tag(name)
 
             embed = discord.Embed(title=f"Tag: {name}")
-
-            embed.add_field(name="Content", value=tag.body, inline=False)
-
+            
             embed.add_field(name="Author", value=f"<@{tag.author}>")
             embed.add_field(name="Created On", value=time.strftime("%D @ %R UTC", time.gmtime(tag.created)))
 
