@@ -1,0 +1,19 @@
+{
+  "Join": [
+    "{USER} joined"
+  ],
+  "Leave": [
+    "{USER} left"
+  ],
+  "Kick": [
+    "{USER} was kicked"
+  ],
+  "Ban": [
+    "{USER} was banned"
+  ],
+  "Daily Tips": [
+    "Daily tips",
+    "All of these can have multiple",
+    "One will be chosen at random"
+  ]
+}
