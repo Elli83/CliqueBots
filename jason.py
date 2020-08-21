@@ -41,8 +41,6 @@ class Commands(commands.Cog):
             amt = 100
             if ctx.author in ctx.guild.premium_subscribers:
                 amt += 50
-            if mongo.User(ctx.author).isBirthday():
-                amt *= 2
 
             user.bal += amt   # Add the amount to the user balance
             user.daily.claim()   # Update the users last claimed time
