@@ -2,6 +2,9 @@ import discord
 from discord.ext import commands, menus
 
 import time
+from datetime import datetime
+import asyncio
+import random
 
 from req import core, mongo, embeds, checks
 
@@ -10,10 +13,69 @@ class Bot(core.Core):
     def __init__(self):
         super().__init__("Clancy", [Events, Commands])
 
+    async def update_status(self):
+        await self.change_presence(activity=discord.Activity(name=f"{len(self.users):,d} members", type=discord.ActivityType.listening))
+
 
 class Events(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+
+    @commands.Cog.listener()
+    async def on_ready(self):
+        await self.bot.update_status()   # Update the member count
+
+    # We are using a custom on_join event instead of the default on_member_join
+    # This is so that we can send the message when they get given the main role instead
+
+    @commands.Cog.listener()
+    async def on_member_join(self, member):
+        # This contradicts the comment above, I know, but this is only temporary
+        await self.on_join(member)
+
+    @commands.Cog.listener()
+    async def on_join(self, member):
+        embed = discord.Embed(description=random.choice(self.bot.config.messages['Join']).replace("{USER}", f"<@{member.id}>"),
+                              color=0x33ff33)
+        embed.set_footer(text=f"Member #{len(self.bot.users)}")
+
+        await self.bot.config.channels['general'].send(f"Welcome, {member.mention}!", embed=embed)
+
+        await self.bot.update_status()
+
+    @commands.command()
+    async def join(self, ctx, member:discord.Member):
+        await self.on_member_join(member)
+
+    @commands.Cog.listener()
+    async def on_member_remove(self, member):
+        await asyncio.sleep(3)   # Wait for audit logs to update
+
+        type = "Leave"   # Set type to leave by default
+        async for entry in member.guild.audit_logs(limit=3, oldest_first=False):   # Loop through the previous 3 audit logs
+            if not (datetime.utcnow() - entry.created_at).seconds < 15: continue   # Check whether current entry is from last 15 seconds
+            if not entry.target.id == member.id: continue   # Check that affected user is user who left the server
+            if entry.action not in [discord.AuditLogAction.kick, discord.AuditLogAction.ban]: continue   # Check that entry is kick or ban
+
+            if entry.action == discord.AuditLogAction.kick:
+                type = "Kick"
+                break   # Stop checking
+            elif entry.action == discord.AuditLogAction.ban:
+                type = "Ban"
+                break   # Stop checking
+
+        # Set the embed
+        embed = discord.Embed(description=random.choice(self.bot.config.messages[type]).replace("{USER}", f"**{member.display_name}**"),
+                              color=0xff3333 if type == "Leave" else 0x707070 if type == "Kick" else 0x202020)
+        embed.set_footer(text=f"{member.display_name} {'left' if type == 'Leave' else 'was kicked' if type == 'Kick' else 'was banned'}")
+
+        await self.bot.channels['general'].send(embed=embed)   # Send the leave message
+
+        await self.bot.update_status()   # Update the member count
+
+    @commands.command()
+    async def leave(self, ctx, member:discord.Member):
+        await self.on_member_remove(member)
 
 
 class Commands(commands.Cog):
@@ -80,6 +142,8 @@ class Commands(commands.Cog):
             body = await self.bot.wait_for('message', check=lambda m: m.channel.id == ctx.channel.id and m.author.id == ctx.author.id)
             body = body.content
 
+        body = body.replace("@everyone", "Nice try").replace("@here", "Nice try")
+
         embed = discord.Embed(title="Tag Creator",
                               description=f"Are you sure you would like to create the tag `{name}`")
         embed.set_footer(text="Creating a tag costs 50cr")
@@ -104,6 +168,8 @@ class Commands(commands.Cog):
                     await ctx.send(ctx.author.mention, embed=embed)
                     new = await self.bot.wait_for('message', check=lambda m: m.channel.id == ctx.channel.id and m.author.id == ctx.author.id)
                     new = new.content
+
+                new = new.replace("@everyone", "Nice try").replace("@here", "Nice try")
 
                 embed = discord.Embed(title="Tag Editor",
                                       description=f"Are you sure you would like to edit the tag `{name}`")
