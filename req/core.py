@@ -55,6 +55,7 @@ class Config():
         self.houses = self.load("houses")
         self.intros = self.load("intros")
         self.messages = self.load("messages")
+        self.roles = self.load("roles")
         self.settings = self.load("settings")
         self.tokens = self.load("tokens")
         self.welcome = self.load("welcome")
