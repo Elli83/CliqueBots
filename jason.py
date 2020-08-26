@@ -42,17 +42,19 @@ class Commands(commands.Cog):
             if ctx.author in ctx.guild.premium_subscribers:
                 amt += 50
 
-            user.bal += amt   # Add the amount to the user balance
-            user.daily.claim()   # Update the users last claimed time
-
             if user.daily.since < 108000:   # Check for streak
                 user.daily.streak += 1
             else:
                 user.daily.streak = 0
 
+            user.bal += amt   # Add the amount to the user balance
+            user.daily.claim()   # Update the users last claimed time
+
             embed = discord.Embed(title=f"You have claimed your daily {amt}cr!",
                                   description=f"{':white_medium_square:' * user.daily.streak}{':black_medium_square:' * (7 - user.daily.streak)}",   # Display streaks
                                   color=0x33ff33)
+
+            embed.set_footer(text=random.choice(self.bot.config.messages['Daily Tips']))
 
             if user.daily.streak >= 7:
                 bonusamt = random.randint(400, 500)
@@ -79,6 +81,23 @@ class Commands(commands.Cog):
             await ctx.message.add_reaction('👍')
             mongo.User(ctx.author).bal -= amt
             mongo.User(user).bal += amt
+
+    @commands.command(name="shop", aliases=["store"])
+    async def shop(self, ctx):
+        class ShopMenu(menus.MenuPages):
+            @menus.button("\N{THUMBS UP SIGN}")
+            async def thumbsup(self, payload):
+                await self.ctx.send("hi lol")
+
+        class Source(menus.ListPageSource):
+            def __init__(self, data):
+                super().__init__(data, per_page=1)
+                self.data = data
+
+            async def format_page(self, menu, page):
+                return self.data[menu.current_page]
+
+        await ShopMenu(source=Source(["1", "2", "3"])).start(ctx)
 
     @commands.command(name="top", aliases=["leaderboard"])
     async def top(self, ctx):
