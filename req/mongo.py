@@ -50,6 +50,10 @@ class User:
             raise errors.InsufficientBalance
         self.update("Balance", bal)
 
+    def check_bal(self, amt):
+        if self.bal - amt < 0:
+            raise errors.InsufficientBalance
+
     class _Daily:
         def __init__(self, user):
             self.user = user
