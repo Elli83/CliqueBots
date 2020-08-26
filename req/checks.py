@@ -2,7 +2,8 @@ from . import mongo, errors
 
 import json
 
-roles = json.load(open("./config/settings.json"))['roles']
+roles = json.load(open("./config/roles.json"))
+
 
 async def admin(ctx):
     for r in ctx.author.roles:

@@ -3,10 +3,5 @@
   "mongo": {
     "uri": "MONGO URI",
     "db": "MONGO DB"
-  },
-  "roles": {
-    "admin": 123,
-    "moderator": 123,
-    "staff": 123
   }
 }
