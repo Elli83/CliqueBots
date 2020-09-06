@@ -23,14 +23,6 @@ class Commands(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name="level", aliases=["xp"])
-    async def level(self, ctx, user:discord.Member=None):
-        await ctx.send(mongo.User(ctx.author).level)
-
-    @commands.command(name="addxp")
-    async def addxp(self, ctx, user:discord.Member, amt:int):
-        await mongo.User(user).addxp(amt)
-
     @commands.command(name="balance", aliases=["bal", "money", "credits"])
     async def balance(self, ctx, user: discord.Member=None):
         if user:
@@ -109,31 +101,11 @@ class Commands(commands.Cog):
 
     @commands.command(name="top", aliases=["leaderboard"])
     async def top(self, ctx):
-        class LeaderboardType(menus.Menu):
-            def __init__(self):
-                super().__init__(clear_reactions_after=True)
-
-            async def send_initial_message(self, ctx, channel):
-                embed = discord.Embed(title="Leaderboard",
-                                      description="What leaderboard would you like to view?\n"
-                                                  "🇨 Credits\n"
-                                                  "🇱 Level")
-                return await ctx.send(embed=embed)
-
-            @menus.button("\N{REGIONAL INDICATOR SYMBOL LETTER C}")
-            async def credits(self, payload):
-                self.type = "Credits"
-                self.stop()
-
-            @menus.button("\N{REGIONAL INDICATOR SYMBOL LETTER L}")
-            async def level(self, payload):
-                self.type = "Level"
-                self.stop()
-
-            async def prompt(self, ctx):
-                await self.start(ctx, wait=True)
-
-        type = await LeaderboardType().prompt(ctx)
+        """embed = discord.Embed(title="Leaderboard",
+                              description="What leaderboard would you like to view?\n"
+                                          "🇨 Credits\n"
+                                          "🇱 Level")
+        await ctx.send(ctx.author.mention, embed=embed)"""
 
         class Leaderboard(menus.ListPageSource):
             def __init__(self, data, per_page=10):
@@ -142,12 +114,9 @@ class Commands(commands.Cog):
 
             async def format_page(self, menu, entries):
                 offset = menu.current_page * self.per_page
-                embed = discord.Embed(title=f"Leaderboard - {type}",
+                embed = discord.Embed(title=f"Leaderboard - Credits",
                                       color=0x33ff33)
-                if type == "Credits":
-                    embed.description = '\n'.join(f"` {'{:02d}'.format(i+1)} ` **|** <@{v['ID']}> - {v['Balance']}cr" for i, v in enumerate(entries, start=offset))
-                else:
-                    embed.description = '\n'.join(f"` {'{:02d}'.format(i+1)} ` **|** <@{v['ID']}> - Level {mongo.User.calc_level(v['XP'])}" for i, v in enumerate(entries, start=offset))
+                embed.description = '\n'.join(f"` {'{:02d}'.format(i+1)} ` **|** <@{v['ID']}> - {v['Balance']}cr" for i, v in enumerate(entries, start=offset))
 
                 try:
                     pos = [u['ID'] for u in top].index(str(ctx.author.id)) + 1
@@ -157,10 +126,7 @@ class Commands(commands.Cog):
                 embed.set_footer(text=f"Page {menu.current_page+1} | Your position: {pos}")
                 return embed
 
-        if type == "Credits":
-            top = list(mongo.db['Users'].find({"Balance": {"$gte": 1}}).sort("Balance", -1))
-        else:
-            top = list(mongo.db['Users'].find({"XP": {"$gte": 1}}).sort("XP", -1))
+        top = list(mongo.db['Users'].find({"Balance": {"$gte": 1}}).sort("Balance", -1))
         pages = menus.MenuPages(source=Leaderboard(top))
         pages.remove_button('\N{BLACK LEFT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}\ufe0f')
         pages.remove_button('\N{BLACK RIGHT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}\ufe0f')

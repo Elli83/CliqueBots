@@ -1,7 +1,5 @@
 import discord
 from discord.ext import commands
-
-import math
 import time
 import json
 
@@ -31,38 +29,18 @@ class User:
         "Seen": time.time()
     }
 
-    @staticmethod
-    def calc_level(xp):
-        return math.floor(math.pow(((xp + 2) / 2), 1 / 3))
-
     # --------------------------------------------------
 
-    def __init__(self, user:discord.User):
-        self.user = user
-        self.id = str(user.id)
+    def __init__(self, user):
+        if type(user) in [discord.User, discord.Member]: user = user.id
+        self.id = str(user)
 
         if not self._exists(self.id):
             self._create(self.id)
 
         self.daily = self._Daily(self)
 
-    @property
-    def level(self):
-        return self.calc_level(self.xp)
-
-    @property
-    def xp(self): return self.get("XP")
-
-    async def addxp(self, amt: int, channel: discord.TextChannel=None):
-        channel = channel or self.user
-
-        l1 = self.level   # Get level before adding xp
-        self.update("XP", self.xp + amt)   # Add xp
-        l2 = self.level   # Get level after adding xp
-
-        if l2 > l1:   # Check for level up
-            await channel.send(f":tada: **Level up!** ({l1} > {l2})   {self.user.mention if not channel == self.user else ''}")
-
+    # BALANCE
     @property
     def bal(self): return self.get("Balance")
 
@@ -81,16 +59,20 @@ class User:
             self.user = user
 
         @property
-        def claimed(self): return self.user.get("Daily")['Last'] or 0
+        def claimed(self):
+            return self.user.get("Daily")['Last'] or 0
 
         @property
-        def ready(self): return self.claimed < time.time() - 86400
+        def ready(self):
+            return self.claimed < time.time() - 86400
 
         @property
-        def since(self): return time.time() - self.claimed
+        def since(self):
+            return time.time() - self.claimed
 
         @property
-        def until(self): return 86400 - (time.time() - self.claimed)
+        def until(self):
+            return 86400 - (time.time() - self.claimed)
 
         def claim(self):
             self.user.update("Daily.Last", time.time())
