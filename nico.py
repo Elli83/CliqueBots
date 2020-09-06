@@ -50,7 +50,8 @@ class Commands(commands.Cog):
         m = await ctx.send(embed=discord.Embed(title=f"Comment by {ctx.author.display_name}",
                                                description=body,
                                                color=0x33aaff))
-        await m.pin()
+        m = await m.pin()
+        await m.delete()
 
     @ticket.command(name="close")
     async def ticket_close(self, ctx):
