@@ -43,7 +43,7 @@ class Events(commands.Cog):
 
         await self.bot.update_status()
 
-    @commands.command()   # This just triggers the join event for testing
+    @commands.command()
     async def join(self, ctx, member:discord.Member):
         await self.on_member_join(member)
 
@@ -73,7 +73,7 @@ class Events(commands.Cog):
 
         await self.bot.update_status()   # Update the member count
 
-    @commands.command()   # This just triggers the join event for testing
+    @commands.command()
     async def leave(self, ctx, member:discord.Member):
         await self.on_member_remove(member)
 
