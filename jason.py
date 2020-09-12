@@ -23,6 +23,16 @@ class Commands(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    @commands.command(name="level", aliases=["xp"])
+    async def level(self, ctx, user:discord.Member = None):
+        user = user or ctx.author
+        embed = discord.Embed(description=f"**{'You are' if user == ctx.author else f'{user.name} is'} level {mongo.User(user).level}**")
+        await ctx.send(embed=embed)
+
+    @commands.command(name="addxp")
+    async def addxp(self, ctx, user:discord.Member, amt:int):
+        await mongo.User(user).addxp(amt)
+
     @commands.command(name="balance", aliases=["bal", "money", "credits"])
     async def balance(self, ctx, user: discord.Member=None):
         if user:
@@ -84,28 +94,30 @@ class Commands(commands.Cog):
 
     @commands.command(name="shop", aliases=["store"])
     async def shop(self, ctx):
-        class ShopMenu(menus.MenuPages):
-            @menus.button("\N{THUMBS UP SIGN}")
-            async def thumbsup(self, payload):
-                await self.ctx.send("hi lol")
+        shops = ['Roles', 'Backgrounds']
+        embed = discord.Embed(title="Shop",
+                              description='\n'.join([f'` {i+1} ` {s}' for i, s in enumerate(shops)]))
+        s = await embeds.prompt(ctx, embed=embed, options=[f'{i+1}⃣' for i in range(len(shops))])
 
-        class Source(menus.ListPageSource):
-            def __init__(self, data):
-                super().__init__(data, per_page=1)
-                self.data = data
+        categories = [['Daily', 'Singles', 'Albums', 'Cat1'],
+                      ['Daily', 'Colors']][s]
+        embed = discord.Embed(title="Shop | Roles",
+                              description='\n'.join([f'` {i+1} ` {c}' for i, c in enumerate(categories)]))
+        c = categories[await embeds.prompt(ctx, embed=embed, options=[f'{i+1}⃣' for i in range(len(categories))])]
 
-            async def format_page(self, menu, page):
-                return self.data[menu.current_page]
-
-        await ShopMenu(source=Source(["1", "2", "3"])).start(ctx)
+        items = list(mongo.db[shops[s]].find({'Category': c}))
 
     @commands.command(name="top", aliases=["leaderboard"])
     async def top(self, ctx):
-        """embed = discord.Embed(title="Leaderboard",
-                              description="What leaderboard would you like to view?\n"
-                                          "🇨 Credits\n"
-                                          "🇱 Level")
-        await ctx.send(ctx.author.mention, embed=embed)"""
+        embed = discord.Embed(description="**What leaderboard would you like to view?**\n"
+                                          "**` C `** Credits\n"
+                                          "**` L `** Level")
+        type = ['Credits', 'Level'][await embeds.prompt(ctx, embed=embed, options=["🇨", "🇱"])]
+
+        if type == "Credits":
+            top = list(mongo.db['Users'].find({"Balance": {"$gt": 0}}).sort("Balance", -1))
+        elif type == "Level":
+            top = list(mongo.db['Users'].find({"XP": {"$gt": 0}}).sort("XP", -1))
 
         class Leaderboard(menus.ListPageSource):
             def __init__(self, data, per_page=10):
@@ -114,9 +126,13 @@ class Commands(commands.Cog):
 
             async def format_page(self, menu, entries):
                 offset = menu.current_page * self.per_page
-                embed = discord.Embed(title=f"Leaderboard - Credits",
+                embed = discord.Embed(title=f"Leaderboard - {type}",
                                       color=0x33ff33)
-                embed.description = '\n'.join(f"` {'{:02d}'.format(i+1)} ` **|** <@{v['ID']}> - {v['Balance']}cr" for i, v in enumerate(entries, start=offset))
+
+                if type == "Credits":
+                    embed.description = '\n'.join(f"` {'{:02d}'.format(i+1)} ` **|** <@{v['ID']}> - {v['Balance']}cr" for i, v in enumerate(entries, start=offset))
+                elif type == "Level":
+                    embed.description = '\n'.join(f"` {'{:02d}'.format(i+1)} ` **|** <@{v['ID']}> - Level {mongo.User.calc_level(v['XP'])}" for i, v in enumerate(entries, start=offset))
 
                 try:
                     pos = [u['ID'] for u in top].index(str(ctx.author.id)) + 1
@@ -126,7 +142,6 @@ class Commands(commands.Cog):
                 embed.set_footer(text=f"Page {menu.current_page+1} | Your position: {pos}")
                 return embed
 
-        top = list(mongo.db['Users'].find({"Balance": {"$gte": 1}}).sort("Balance", -1))
         pages = menus.MenuPages(source=Leaderboard(top))
         pages.remove_button('\N{BLACK LEFT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}\ufe0f')
         pages.remove_button('\N{BLACK RIGHT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}\ufe0f')
