@@ -117,7 +117,9 @@ class Commands(commands.Cog):
     @commands.group(name="tag", aliases=["t"], invoke_without_command=True)
     async def tag(self, ctx, tag):
         if mongo.Tag.exists(tag):
-            await ctx.send(mongo.Tag(tag).body)
+            await ctx.send(mongo.Tag(tag).body
+                           .replace("@everyone", "everyone")
+                           .replace("@here", "here"))
         else:
             await ctx.send(ctx.author.mention, embed=embeds.error(f"The tag {tag} does not exist!"))
 
@@ -141,8 +143,6 @@ class Commands(commands.Cog):
             await ctx.send(ctx.author.mention, embed=embed)
             body = await self.bot.wait_for('message', check=lambda m: m.channel.id == ctx.channel.id and m.author.id == ctx.author.id)
             body = body.content
-
-        body = body.replace("@everyone", "Nice try").replace("@here", "Nice try")
 
         embed = discord.Embed(title="Tag Creator",
                               description=f"Are you sure you would like to create the tag `{name}`")
@@ -168,8 +168,6 @@ class Commands(commands.Cog):
                     await ctx.send(ctx.author.mention, embed=embed)
                     new = await self.bot.wait_for('message', check=lambda m: m.channel.id == ctx.channel.id and m.author.id == ctx.author.id)
                     new = new.content
-
-                new = new.replace("@everyone", "Nice try").replace("@here", "Nice try")
 
                 embed = discord.Embed(title="Tag Editor",
                                       description=f"Are you sure you would like to edit the tag `{name}`")
