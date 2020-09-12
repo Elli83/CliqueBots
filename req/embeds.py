@@ -75,3 +75,28 @@ async def confirm_transaction(ctx):
 
     return await confirm(ctx, embed, noembed=noembed)
 
+
+async def prompt(ctx, embed, options):
+    class Menu(menus.Menu):
+        def __init__(self):
+            super().__init__()
+
+            for o in options:
+                button = menus.Button(o, self.button)
+                self.add_button(button)
+
+            self.response = None
+
+        async def send_initial_message(self, ctx, channel):
+            return await ctx.send(ctx.author.mention, embed=embed)
+
+        async def button(self, payload):
+            self.response = options.index(payload.emoji.name)
+            self.stop()
+
+        async def prompt(self, ctx):
+            await self.start(ctx, wait=True)
+
+            return self.response
+
+    return await Menu().prompt(ctx)
