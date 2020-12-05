@@ -1,3 +1,4 @@
+## **THIS PROJECT IS NOW ABANDONED**
 **This project is still in very early development, do not expect code to function as expected or to be complete!**
 
 ## Information
